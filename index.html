@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Email Viewer</title>
+    <style>
+        /* Add your CSS here */
+        .sideMenuItem:nth-child(odd) {
+            background-color: #fff3e0 ;
+        }
+
+        .sideMenuItem {
+            padding: 5px;
+            cursor: pointer;
+            color: black; /* Default text color */
+        }
+
+        /* Style for filtered out items */
+        .sideMenuItem.filtered {
+            color: #BBBBBB; /* Lighter gray */
+        }
+
+        #filterBar {
+            font-family: 'Arial', sans-serif;
+            background-color: #f2f2f2;
+            border-bottom: 1px solid #ccc;
+            box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        fieldset {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            margin-right: 10px;
+        }
+
+        legend {
+            padding: 0 10px;
+        }
+
+        label {
+            margin-right: 20px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #displayingFieldset {
+            min-width: 50px;
+            text-align: center;
+        }
+
+        #messageCount {
+            font-size: 12px;
+            vertical-align: middle;
+        }
+
+    </style>
+</head>
+<body>
+<div id="filterBar"
+     style="width: 100%; padding: 10px; background-color: #ddd; position: fixed; top: 0; z-index: 1; left:0; white-space: nowrap;">
+
+    <fieldset id="displayingFieldset" style="display: inline-block; margin-right: 10px;">
+        <legend>Displaying</legend>
+        <span id="messageCount">0 of 0</span>
+    </fieldset>
+
+    <fieldset style="display: inline-block; margin-right: 10px;">
+        <legend>Date Filters</legend>
+        <label>
+            After: <input type="text" id="afterDate" placeholder="mm/dd/yy">
+        </label>
+        <label>
+            Before: <input type="text" id="beforeDate" placeholder="mm/dd/yy">
+        </label>
+    </fieldset>
+
+    <fieldset style="display: inline-block; margin-right: 10px;">
+        <legend>Email Filters</legend>
+        <label>
+            Email: <input type="text" id="emailFilter">
+        </label>
+        <label>
+            From: <input type="checkbox" id="fromCheck">
+        </label>
+        <label>
+            To: <input type="checkbox" id="toCheck">
+        </label>
+        <label>
+            CC: <input type="checkbox" id="ccCheck">
+        </label>
+    </fieldset>
+
+    <label style="margin-right: 10px;">
+        Has Files Attached: <input type="checkbox" id="hasFiles">
+    </label>
+
+    <label style="margin-right: 10px;">
+        Contains: <input type="text" id="containsFilter">
+    </label>
+
+    <button id="clearFilters" style="margin-right: 10px;">Clear</button>
+</div>
+
+
+<div id="sideMenu"
+     style="position: fixed; top: 90px; left: 0; height: calc(100% - 90px); overflow-y: auto; width: 200px;">
+    <!-- Menu items will go here -->
+</div>
+
+<div id="emailContainer" style="margin-left: 210px; margin-top: 90px;">
+    <!-- Emails will go here -->
+</div>
+
+<script>
+    // This array will be overwritten by the JSON data in the placeholder. Let's put a couple of simple test emails here.
+    var emails = [
+        {
+            id: "email1",
+            subject: "Project Update",
+            date: "10/12/23",
+            from: "john.doe@example.com",
+            to: "jane.doe@example.com",
+            cc: "",
+            body: "The project is on track. No issues so far.",
+            folder_name: "inbox",
+            attachments: ["update.pdf"]
+        },
+        {
+            id: "email2",
+            subject: "Weekend Plans",
+            date: "10/10/23",
+            from: "jane.doe@example.com",
+            to: "john.doe@example.com",
+            cc: "",
+            body: "Let's go hiking this weekend.",
+            folder_name: "inbox",
+            attachments: ["map.jpg"]
+        },
+        {
+            id: "email3",
+            subject: "Invoice",
+            date: "10/05/23",
+            from: "finance@example.com",
+            to: "john.doe@example.com",
+            cc: "jane.doe@example.com",
+            body: "Please find the attached invoice.",
+            folder_name: "inbox",
+            attachments: ["invoice.pdf", "terms.txt"]
+        }
+    ];
+
+    // The shape of an email is as follows:
+    // {
+    //     id: string,     // Unique ID for the email file. This is usually the file name.
+    //     subject: string,  // Subject of the email
+    //     date: string,  // A formatted date the email was sent
+    //     from: string,  // Email address of the sender
+    //     to: string, // Email addresses of the recipients
+    //     cc: string, // Email addresses of the CC recipients
+    //     body: string, // The body of the email, usually HTML format if available
+    //     folder_name: string,  // The relative folder name where the email's files are located
+    //     attachments: string[] // A list of file names that are attached to the email, plus the email body file (message.html)
+    // }
+
+
+    <!--JSON_PLACEHOLDER-->
+
+    const emailContainer = document.getElementById('emailContainer');
+
+    const sideMenu = document.getElementById('sideMenu');
+
+
+    emails.forEach((email, index) => {
+        const emailDiv = document.createElement('div');
+        // Iterate over email.attachments and make a list of links.
+        // Some attachment names may contain hashes (#) so we need to encode them.
+        const attachments = email.attachments.map(attachment => {
+            return `<a href="${email.folder_name}/${encodeURIComponent(attachment)}">${attachment}</a>`;
+        }).join(' | ');
+
+        emailDiv.className = 'email';
+        emailDiv.id = email.id;
+        emailDiv.innerHTML = `
+                <h2>${email.subject}</h2>
+                <p>File: ${email.id}</p>
+                <p>Date: ${email.date}</p>
+                <p>From: ${email.from}</p>
+                <p>To: ${email.to}</p>
+                <p>Files: ${attachments}</p>
+                <div class="body">${email.body}</div>
+                <hr>
+            `;
+        emailContainer.appendChild(emailDiv);
+
+        // Create side menu items
+        const sideMenuItem = document.createElement('div');
+
+        sideMenuItem.className = 'sideMenuItem';
+        sideMenuItem.innerText = email.id;
+        sideMenuItem.addEventListener('click', function () {
+            const emailDiv = document.getElementById(email.id);
+            emailDiv.scrollIntoView();
+        });
+        sideMenu.appendChild(sideMenuItem);
+    });
+
+    function applyFilters() {
+        const hasFiles = document.getElementById('hasFiles').checked;
+
+        const emailDivs = document.querySelectorAll('.email');
+        const sideMenuItems = document.querySelectorAll('.sideMenuItem');
+
+        let visibleCount = 0;
+        let totalCount = 0;
+
+        // Iterate over each email and apply filters.  This needs to be complete before we update the count.
+
+        emails.forEach((email, index) => {
+            const emailDiv = emailDivs[index];
+            const sideMenuItem = sideMenuItems[index];
+            const afterDateValue = document.getElementById('afterDate').value;
+            const beforeDateValue = document.getElementById('beforeDate').value;
+            const datePattern = /^\d{2}\/\d{2}\/\d{2}$/;
+            const emailFilterValue = document.getElementById('emailFilter').value.trim();
+            const fromCheck = document.getElementById('fromCheck').checked;
+            const toCheck = document.getElementById('toCheck').checked;
+            const ccCheck = document.getElementById('ccCheck').checked;
+            const containsFilterValue = document.getElementById('containsFilter').value.toLowerCase().trim();
+
+
+            let afterDate = null;
+            let beforeDate = null;
+
+            if (datePattern.test(afterDateValue)) {
+                afterDate = new Date(afterDateValue);
+            }
+            if (datePattern.test(beforeDateValue)) {
+                beforeDate = new Date(beforeDateValue);
+            }
+
+            let shouldDisplay = true;
+
+            // Has Files Attached filter
+            if (hasFiles) {
+                const nonImageAttachments = email.attachments.filter(filename => {
+                    return !filename.endsWith('.jpg') && !filename.endsWith('.html');
+                });
+                shouldDisplay = nonImageAttachments.length > 0;
+            }
+
+            // Email filters
+            if (emailFilterValue && (fromCheck || toCheck || ccCheck)) {
+                let emailFields = [];
+                if (fromCheck) emailFields.push(email.from);
+                if (toCheck) emailFields.push(email.to);
+                if (ccCheck) emailFields.push(email.cc);
+
+                if (!emailFields.some(field => field.includes(emailFilterValue))) {
+                    shouldDisplay = false;
+                }
+            }
+
+            // Date filters
+            if (afterDate || beforeDate) {
+                const emailDate = new Date(email.date);
+                if (afterDate && emailDate < afterDate) {
+                    shouldDisplay = false;
+                }
+                if (beforeDate && emailDate > beforeDate) {
+                    shouldDisplay = false;
+                }
+            }
+
+            // Contains filter
+            if (containsFilterValue) {
+                const subject = email.subject.toLowerCase();
+                const body = email.body.toLowerCase();
+                if (!subject.includes(containsFilterValue) && !body.includes(containsFilterValue)) {
+                    shouldDisplay = false;
+                }
+            }
+
+            // Apply display status to email and corresponding side menu item
+            if (shouldDisplay) {
+                emailDiv.style.display = 'block';
+                sideMenuItem.classList.remove('filtered');
+                visibleCount++;
+            } else {
+                emailDiv.style.display = 'none';
+                sideMenuItem.classList.add('filtered');
+            }
+            totalCount++;
+        });
+
+        // Update message count label
+        document.getElementById('messageCount').textContent = `${visibleCount} of ${totalCount}`;
+    }
+
+    // Initial application of filters
+    applyFilters();
+
+    document.getElementById('hasFiles').addEventListener('change', applyFilters);
+    document.getElementById('afterDate').addEventListener('input', applyFilters);
+    document.getElementById('beforeDate').addEventListener('input', applyFilters);
+    document.getElementById('emailFilter').addEventListener('input', applyFilters);
+    document.getElementById('fromCheck').addEventListener('change', applyFilters);
+    document.getElementById('toCheck').addEventListener('change', applyFilters);
+    document.getElementById('ccCheck').addEventListener('change', applyFilters);
+    document.getElementById('containsFilter').addEventListener('input', applyFilters);
+
+
+    document.getElementById('clearFilters').addEventListener('click', function () {
+        document.getElementById('hasFiles').checked = false;
+        document.getElementById('afterDate').value = '';
+        document.getElementById('beforeDate').value = '';
+        document.getElementById('emailFilter').value = '';
+        document.getElementById('fromCheck').checked = false;
+        document.getElementById('toCheck').checked = false;
+        document.getElementById('ccCheck').checked = false;
+        document.getElementById('containsFilter').value = '';
+        applyFilters();
+    });
+
+</script>
+</body>
+</html>
