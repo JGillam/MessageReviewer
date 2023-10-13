@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The Message Reviewer tool is designed to simplify the task of reviewing a folder full of `.msg` files, such as those that might be presented as evidence in legal cases. The tool reads all `.msg` files in the specified folder and generates an HTML interface that allows for easy viewing and filtering of the emails based on several criteria.
+The Message Reviewer tool is designed to simplify the task of reviewing a folder full of `.msg` files, such as those that might be presented as evidence in legal cases. This is not a forensics tool but it may be useful to help rapidly review information. The tool reads all `.msg` files in the specified folder and generates an HTML interface that allows for easy viewing and filtering of the emails based on several criteria.
 
 ![Screenshot of the tool](screenshot.png)
 
