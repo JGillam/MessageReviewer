@@ -23,7 +23,7 @@ The Message Reviewer tool is designed to simplify the task of reviewing a folder
 
 ## Usage
 
-1. **Run the Tool**: In the virtual environment, run the command `python generate_messages_json.py --path <path_to_msg_files>`. This will generate an `index.html` file and a `messages.json` file in the specified folder.
+1. **Run the Tool**: In the virtual environment, run the command `python generate_messages_json.py --path <path_to_msg_files>`. This will generate a `revmsg` folder containing `index.html` and extracted messages in the specified folder.
 2. **Open HTML**: Double-click the generated `index.html` file to open it in a web browser.
 3. **Review and Filter Emails**: Use the HTML interface to review and filter emails as needed.
 4. **Exit the Tool**: Close the web browser to exit the tool. Type `exit` in the terminal to exit the virtual environment.
