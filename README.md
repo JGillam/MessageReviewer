@@ -27,3 +27,7 @@ The Message Reviewer tool is designed to simplify the task of reviewing a folder
 2. **Open HTML**: Double-click the generated `index.html` file to open it in a web browser.
 3. **Review and Filter Emails**: Use the HTML interface to review and filter emails as needed.
 4. **Exit the Tool**: Close the web browser to exit the tool. Type `exit` in the terminal to exit the virtual environment.
+
+## Feedback, Features, Contributions
+
+I don't expect contributions but welcome them in the form of pull requests. Use the Issues in this repo if you find something not working as expected or have a specific feature request, and Discussions if you just want to hash out an idea but don't have specifics.
